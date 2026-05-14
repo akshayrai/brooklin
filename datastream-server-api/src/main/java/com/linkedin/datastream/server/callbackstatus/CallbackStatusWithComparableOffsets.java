@@ -74,7 +74,8 @@ public class CallbackStatusWithComparableOffsets<T extends Comparable<T>> extend
   @Override
   public synchronized void ack(T checkpoint) {
     if (!_inFlight.remove(checkpoint)) {
-      LOG.error("Internal state error; could not remove checkpoint {}", checkpoint);
+      LOG.warn("Could not remove checkpoint {} from in-flight set (size={}); likely a duplicate ack race",
+          checkpoint, _inFlight.size());
     }
     _acked.add(checkpoint);
 

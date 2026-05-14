@@ -287,7 +287,8 @@ public class StickyPartitionAssignmentStrategy extends StickyMulticastStrategy i
             try {
               return new DatastreamTaskImpl((DatastreamTaskImpl) task, newPartitions);
             } catch (Exception e) {
-              LOG.error("Hit exception while creating a new task from existing task: {} assigned to instance: {}",
+              LOG.warn("Hit exception while creating a new task from existing task: {} assigned to instance: {}; "
+                  + "caller will fall back to creating a fresh task",
                   task.getDatastreamTaskName(), instance, e);
               throw e;
             }
@@ -448,7 +449,8 @@ public class StickyPartitionAssignmentStrategy extends StickyMulticastStrategy i
             extraDependencies.forEach(newTask::addDependency);
             return newTask;
           } catch (Exception e) {
-            LOG.error("Hit exception while creating a new task from existing task: {} assigned to instance: {}",
+            LOG.warn("Hit exception while creating a new task from existing task: {} assigned to instance: {}; "
+                + "caller will fall back to creating a fresh task",
                 task.getDatastreamTaskName(), instance, e);
             throw e;
           }

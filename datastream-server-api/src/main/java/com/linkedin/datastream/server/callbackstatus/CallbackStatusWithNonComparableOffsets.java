@@ -92,7 +92,7 @@ public class CallbackStatusWithNonComparableOffsets<T> extends CallbackStatus<T>
       _currentCheckpoint = _inFlightAfterLastConsumerCheckpoint.pollFirst();
 
       if (!_acked.remove(_currentCheckpoint)) {
-        LOG.error("Internal state error; could not remove checkpoint {}", _currentCheckpoint);
+        LOG.warn("Could not remove checkpoint {} from acked set; likely a duplicate ack race", _currentCheckpoint);
       }
     }
   }

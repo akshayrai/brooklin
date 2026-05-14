@@ -416,7 +416,8 @@ public class ZkAdapter {
     if (index < 0) {
       // only when the ZooKeeper session already expired by the time this adapter joins for leader election.
       // mostly because the zkclient session expiration timeout.
-      LOG.error("Failed to join leader election. wait for the new session to be established");
+      LOG.warn("Instance {} not present in live instances during leader election; waiting for a new ZK session "
+          + "(likely zkclient session expiration)", _instanceName);
       return;
     }
 
@@ -2018,7 +2019,7 @@ public class ZkAdapter {
   @VisibleForTesting
   void onSessionExpired() {
     synchronized (_zkSessionLock) {
-      LOG.error("Zookeeper session expired.");
+      LOG.warn("ZooKeeper session expired for instance {}; will re-register on new session", _instanceName);
       // cancel the lock clean up
       _orphanLockCleanupFuture.cancel(true);
       _orphanLockCleanupFuture = CompletableFuture.completedFuture("completed");
