@@ -993,7 +993,7 @@ public class ZkAdapter {
     try {
       _hostname = InetAddress.getLocalHost().getHostName();
     } catch (UnknownHostException uhe) {
-      LOG.error(uhe.getMessage());
+      LOG.warn("Unable to resolve local hostname; falling back to {}", _hostname, uhe);
     }
 
     //
@@ -1073,7 +1073,7 @@ public class ZkAdapter {
         String errorNode = _zkclient.createPersistentSequential(path + "/", message);
         LOG.info("created error node at: " + errorNode);
       } catch (RuntimeException ex) {
-        LOG.error("failed to create instance error node: " + path);
+        LOG.warn("Failed to create instance error node at path {} for instance {}", path, _instanceName, ex);
       }
     }
   }

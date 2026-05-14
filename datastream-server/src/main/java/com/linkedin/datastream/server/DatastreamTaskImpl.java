@@ -496,7 +496,8 @@ public class DatastreamTaskImpl implements DatastreamTask {
         List<Integer> partitionList = _partitionsV2.stream().map(Integer::parseInt).collect(Collectors.toList());
         partitionsV2FormatLog = LogUtils.logNumberArrayInRange(partitionList);
       } catch (NumberFormatException e) {
-        LOG.error(e.getMessage());
+        LOG.warn("Failed to parse partitionsV2 as integer list for task {} (partitionsV2={})",
+            getDatastreamTaskName(), _partitionsV2, e);
       }
     } else { // this will be called for low level kafka connector.
       partitionsV2FormatLog = LogUtils.logSummarizedTopicPartitionsMapping(_partitionsV2);

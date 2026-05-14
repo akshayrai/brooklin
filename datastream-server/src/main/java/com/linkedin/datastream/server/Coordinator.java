@@ -1215,7 +1215,7 @@ public class Coordinator implements ZkAdapter.ZkAdapterListener, MetricsAware {
 
         case LEADER_PARTITION_ASSIGNMENT:
           if (event.getEventMetadata() == null) {
-            _log.error("Datastream group is not found when performing partition assignment, ignore the assignment");
+            _log.warn("Datastream group not found when performing partition assignment; ignoring event={}", event);
           } else {
             performPartitionAssignment((String) event.getEventMetadata());
           }
@@ -1232,7 +1232,7 @@ public class Coordinator implements ZkAdapter.ZkAdapterListener, MetricsAware {
       }
     } catch (Exception e) {
       _metrics.updateKeyedMeter(CoordinatorMetrics.getKeyedMeter(event.getType()), 1);
-      _log.error("ERROR: event + " + event + " failed.", e);
+      _log.error("Handling event {} failed on instance={} isLeader={}", event, getInstanceName(), _isLeader, e);
     }
 
     _log.info("END: Handle event " + event);
@@ -1410,10 +1410,10 @@ public class Coordinator implements ZkAdapter.ZkAdapterListener, MetricsAware {
       final ConnectorInfo connectorInfo = _connectors.get(connectorName);
       connectorInfo.getConnector().postDatastreamStateChangeAction(datastreamCopy);
     } catch (CloneNotSupportedException e) {
-      _log.error("Failed to copy object for datastream={}", datastream.getName());
+      _log.error("Failed to copy object for datastream={}", datastream.getName(), e);
       throw new DatastreamException("Failed to copy datastream object", e);
     } catch (DatastreamException e) {
-      _log.error("Failed to perform post datastream state change action datastream={}", datastream.getName());
+      _log.error("Failed to perform post datastream state change action datastream={}", datastream.getName(), e);
       _metrics.updateKeyedMeter(CoordinatorMetrics.KeyedMeter.POST_DATASTREAMS_STATE_CHANGE_ACTION_NUM_ERRORS, 1);
       throw e;
     }
@@ -1451,7 +1451,8 @@ public class Coordinator implements ZkAdapter.ZkAdapterListener, MetricsAware {
         _transportProviderAdmins.get(datastream.getTransportProviderName()).dropDestination(datastream);
       }
     } catch (Exception e) {
-      _log.error("Runtime Exception while delete topic", e);
+      _log.error("Runtime exception while deleting topic for datastream={} transport={}",
+          datastream.getName(), datastream.getTransportProviderName(), e);
     }
   }
 

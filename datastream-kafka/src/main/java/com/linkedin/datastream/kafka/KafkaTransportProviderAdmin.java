@@ -304,7 +304,7 @@ public class KafkaTransportProviderAdmin implements TransportProviderAdmin {
         throw new DatastreamRuntimeException(e);
       }
     } catch (Throwable e) {
-      LOG.error("Creating topic {} failed with exception {}", topicName, e);
+      LOG.error("Creating topic {} failed", topicName, e);
       throw e;
     }
   }

@@ -165,7 +165,8 @@ public class KafkaTransportProvider implements TransportProvider {
         DatastreamProducerRecord producerRecord = DatastreamProducerRecordBuilder.copyProducerRecord(record, partition);
         send(destinationUri, producerRecord, ((metadata, exception) -> {
           if (exception != null) {
-            LOG.error("Failed to broadcast record {} to partition {}", producerRecord, metadata.getPartition());
+            LOG.warn("Failed to broadcast record {} to partition {} of destination {}",
+                producerRecord, metadata.getPartition(), destinationUri, exception);
           } else {
             LOG.debug("Sent broadcast record {} to partition {}", producerRecord, metadata.getPartition());
           }
@@ -178,8 +179,8 @@ public class KafkaTransportProvider implements TransportProvider {
       }
       return new DatastreamRecordMetadata(record.getCheckpoint(), topicName, sentToPartitions, true, partitionCount);
     } catch (DatastreamRuntimeException ex) {
-      LOG.error("Broadcast send failed for record {} at partition {}/{} because of exception: {} ",
-          record, partition, partitionCount, ex);
+      LOG.error("Broadcast send failed for record {} at partition {}/{} of destination {}",
+          record, partition, partitionCount, destinationUri, ex);
       throw ex;
     }
   }
