@@ -302,7 +302,8 @@ public class Coordinator implements ZkAdapter.ZkAdapterListener, MetricsAware {
       ConnectorWrapper connector = connectorInfo.getConnector();
 
       // Creating a separate thread pool for making the onAssignmentChange calls to the connector
-      _assignmentChangeThreadPool.put(connectorType, Executors.newSingleThreadExecutor());
+      _assignmentChangeThreadPool.put(connectorType, Executors.newSingleThreadExecutor(
+          new ThreadFactoryBuilder().setNameFormat("AssignmentChange-" + connectorType + "-%d").build()));
 
       // populate the instanceName. We only know the instance name after _adapter.connect()
       connector.setInstanceName(getInstanceName());
@@ -654,7 +655,8 @@ public class Coordinator implements ZkAdapter.ZkAdapterListener, MetricsAware {
     List<Future<Boolean>> assignmentChangeFutures = _connectors.keySet().stream()
         .map(connectorType -> {
           _assignmentChangeThreadPool.get(connectorType).shutdownNow();
-          _assignmentChangeThreadPool.put(connectorType, Executors.newSingleThreadExecutor());
+          _assignmentChangeThreadPool.put(connectorType, Executors.newSingleThreadExecutor(
+              new ThreadFactoryBuilder().setNameFormat("AssignmentChange-" + connectorType + "-%d").build()));
           return dispatchAssignmentChangeIfNeeded(connectorType, new ArrayList<>(), false, false);
         })
         .filter(Objects::nonNull)
@@ -678,7 +680,8 @@ public class Coordinator implements ZkAdapter.ZkAdapterListener, MetricsAware {
     }
 
     // Wait till all the futures are complete or timeout.
-    ExecutorService threadPoolExecutor = Executors.newFixedThreadPool(1);
+    ExecutorService threadPoolExecutor = Executors.newFixedThreadPool(1,
+        new ThreadFactoryBuilder().setNameFormat("CoordinatorShutdownWait-%d").build());
     threadPoolExecutor.submit(() -> {
       Instant start = Instant.now();
       try {

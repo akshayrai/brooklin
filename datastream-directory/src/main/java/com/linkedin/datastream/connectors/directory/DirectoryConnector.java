@@ -21,6 +21,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.collect.Sets;
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
 
 import com.linkedin.datastream.common.Datastream;
 import com.linkedin.datastream.server.DatastreamTask;
@@ -52,7 +53,8 @@ public class DirectoryConnector implements Connector {
     Validate.isTrue(threadPoolSize > 0, "Thread pool size must be greater than zero");
 
     _directoryProcessors = new ConcurrentHashMap<>();
-    _executorService = Executors.newFixedThreadPool(threadPoolSize);
+    _executorService = Executors.newFixedThreadPool(threadPoolSize,
+        new ThreadFactoryBuilder().setNameFormat("DirectoryConnector-%d").build());
   }
 
   @Override

@@ -45,6 +45,7 @@ import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
 
 import com.linkedin.datastream.common.Datastream;
 import com.linkedin.datastream.common.DatastreamConstants;
@@ -116,7 +117,7 @@ public abstract class AbstractKafkaConnector implements Connector, DiagnosticsAw
       });
 
   // An executor to spawn threads to stop tasks, and cancel them if stuck too long in onAssignmentChange().
-  private final ExecutorService _shutdownExecutorService = Executors.newCachedThreadPool();
+  private final ExecutorService _shutdownExecutorService;
 
   enum DiagnosticsRequestType {
     DATASTREAM_STATE,
@@ -135,6 +136,8 @@ public abstract class AbstractKafkaConnector implements Connector, DiagnosticsAw
   public AbstractKafkaConnector(String connectorName, Properties config, GroupIdConstructor groupIdConstructor,
       String clusterName, Logger logger) {
     _connectorName = connectorName;
+    _shutdownExecutorService = Executors.newCachedThreadPool(
+        new ThreadFactoryBuilder().setNameFormat(connectorName + "-shutdown-%d").setDaemon(true).build());
     _logger = logger;
     _clusterName = clusterName;
     _config = new KafkaBasedConnectorConfig(config);
