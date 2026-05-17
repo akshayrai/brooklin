@@ -55,7 +55,9 @@ public class ServerComponentHealthRestClient {
     if (response != null && !response.isEmpty()) {
       return response.get(0);
     } else {
-      LOG.error("ServerComponentHealth getStatus {} {} failed with empty response.", type, scope);
+      // Caller (e.g. ServerComponentHealthAggregator) logs the per-host failure with full
+      // request context; emitting a duplicate ERROR here just multiplied the line count.
+      LOG.debug("ServerComponentHealth getStatus {} {} failed with empty response.", type, scope);
       return null;
     }
   }
@@ -76,7 +78,8 @@ public class ServerComponentHealthRestClient {
       FindRequest<ServerComponentHealth> request = _builders.findByStatus().typeParam(type).scopeParam(scope).contentParam(content).build();
       return _restClient.sendRequest(request).getResponse().getEntity().getElements();
     } catch (RemoteInvocationException e) {
-      LOG.error("Get serverComponentHealthStatus {} {} failed with error.", type, scope);
+      // Caller surfaces the failure with host context; avoid the duplicate ERROR.
+      LOG.debug("Get serverComponentHealthStatus {} {} failed with error.", type, scope, e);
       return null;
     }
   }
@@ -98,7 +101,8 @@ public class ServerComponentHealthRestClient {
     if (response != null && !response.isEmpty()) {
       return response.get(0);
     } else {
-      LOG.error("ServerComponentHealth getAllStatus {} {} failed with empty response.", type, scope);
+      // Caller surfaces the failure with host context; avoid the duplicate ERROR.
+      LOG.debug("ServerComponentHealth getAllStatus {} {} failed with empty response.", type, scope);
       return null;
     }
   }
@@ -119,7 +123,8 @@ public class ServerComponentHealthRestClient {
       FindRequest<ServerComponentHealth> request = _builders.findByAllStatus().typeParam(type).scopeParam(scope).contentParam(content).build();
       return _restClient.sendRequest(request).getResponse().getEntity().getElements();
     } catch (RemoteInvocationException e) {
-      LOG.error("Get serverComponentHealthAllStatus {} {} failed with error.", type, scope);
+      // Caller surfaces the failure with host context; avoid the duplicate ERROR.
+      LOG.debug("Get serverComponentHealthAllStatus {} {} failed with error.", type, scope, e);
       return null;
     }
   }

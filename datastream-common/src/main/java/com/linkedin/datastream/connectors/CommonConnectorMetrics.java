@@ -373,7 +373,10 @@ public class CommonConnectorMetrics {
    * @param val Value to increment the metric by
    */
   public void updateErrorRate(long val) {
-    _errorLogger.error("updateErrorRate with {}. Look for error logs right before this message to see what happened", val);
+    // No log emitted here: the call site that detected the error is responsible for logging
+    // with context. Emitting a generic ERROR from the metric updater produced one ERROR per
+    // increment with no useful information ("look for error logs right before this message"),
+    // which dominated the error log volume on busy connectors and obscured real failures.
     updateErrorRate(val, null, null);
   }
 
