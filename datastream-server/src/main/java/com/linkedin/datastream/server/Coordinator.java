@@ -753,7 +753,9 @@ public class Coordinator implements ZkAdapter.ZkAdapterListener, MetricsAware {
         // On creating a datastream if the metadata contains any throughput violating topics, we populate the host level cache
         List<DatastreamGroup> datastreamGroups = _adapter.getInstanceAssignment(_adapter.getInstanceName())
             .stream()
-            .map(task -> new DatastreamGroup(getDatastreamTask(task).getDatastreams()))
+            .map(this::getDatastreamTask)
+            .filter(Objects::nonNull)
+            .map(task -> new DatastreamGroup(task.getDatastreams()))
             .collect(Collectors.toList());
         _log.info(
             "Populating the datastream violating topics to host level cache from the datastream objects on the create trigger");
@@ -1047,8 +1049,16 @@ public class Coordinator implements ZkAdapter.ZkAdapterListener, MetricsAware {
 
   @VisibleForTesting
   boolean connectorTasksHaveStopped(String connectorName, Set<String> stoppingTasks) {
-    Set<String> activeTasks =
-        new HashSet<>(_connectors.get(connectorName).getConnector().getConnectorInstance().getActiveTasks());
+    Set<String> activeTasks;
+    try {
+      activeTasks =
+          new HashSet<>(_connectors.get(connectorName).getConnector().getConnectorInstance().getActiveTasks());
+    } catch (UnsupportedOperationException ex) {
+      // Connector does not implement getActiveTasks(); we cannot wait for tasks to drain, so treat as already
+      // stopped. Logged at DEBUG to avoid spamming ERROR on every stop-stream attempt for such connectors.
+      _log.debug("Connector {} does not implement getActiveTasks(); skipping task-stop wait", connectorName);
+      return true;
+    }
     return activeTasks.isEmpty() || stoppingTasks.isEmpty() || Collections.disjoint(activeTasks, stoppingTasks);
   }
 
