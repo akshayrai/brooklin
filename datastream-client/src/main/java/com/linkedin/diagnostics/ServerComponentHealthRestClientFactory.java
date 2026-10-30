@@ -25,6 +25,8 @@ public final class ServerComponentHealthRestClientFactory {
   private ServerComponentHealthRestClientFactory() {
   }
 
+  public static final long DEFAULT_REQUEST_TIMEOUT_MS = 10000;
+
   private static final Logger LOG = LoggerFactory.getLogger(DatastreamRestClientFactory.class);
   private static final BaseRestClientFactory<ServerComponentHealthRestClient> FACTORY =
       new BaseRestClientFactory<>(ServerComponentHealthRestClient.class, LOG);
@@ -34,11 +36,20 @@ public final class ServerComponentHealthRestClientFactory {
    * @param dmsUri URI to DMS endpoint
    */
   public static ServerComponentHealthRestClient getClient(String dmsUri) {
+    return getClient(dmsUri, DEFAULT_REQUEST_TIMEOUT_MS);
+  }
+
+  /**
+   * Get a ServerComponentHealthRestClient with default HTTP client and a custom request timeout
+   * @param dmsUri URI to DMS endpoint
+   * @param requestTimeoutMs HTTP request timeout in milliseconds
+   */
+  public static ServerComponentHealthRestClient getClient(String dmsUri, long requestTimeoutMs) {
     // A ServerComponentHealth response can be very large if Brooklin is responsible for lots of partitions.
     // These defaults should accommodate almost all use cases.
     final Map<String, Object> properties = new HashMap<>();
     properties.put(HttpClientFactory.HTTP_MAX_RESPONSE_SIZE, "256000000"); // 256 MB
-    properties.put(HttpClientFactory.HTTP_REQUEST_TIMEOUT, "10000"); // 10 seconds
+    properties.put(HttpClientFactory.HTTP_REQUEST_TIMEOUT, String.valueOf(requestTimeoutMs));
 
     return FACTORY.getClient(dmsUri, properties);
   }

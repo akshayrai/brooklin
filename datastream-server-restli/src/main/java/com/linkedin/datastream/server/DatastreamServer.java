@@ -65,6 +65,7 @@ import static com.linkedin.datastream.server.DatastreamServerConfigurationConsta
 import static com.linkedin.datastream.server.DatastreamServerConfigurationConstants.CONFIG_CONNECTOR_PREFIX;
 import static com.linkedin.datastream.server.DatastreamServerConfigurationConstants.CONFIG_CSV_METRICS_DIR;
 import static com.linkedin.datastream.server.DatastreamServerConfigurationConstants.CONFIG_DIAG_PATH;
+import static com.linkedin.datastream.server.DatastreamServerConfigurationConstants.CONFIG_DIAG_PEER_TIMEOUT_MS;
 import static com.linkedin.datastream.server.DatastreamServerConfigurationConstants.CONFIG_DIAG_PORT;
 import static com.linkedin.datastream.server.DatastreamServerConfigurationConstants.CONFIG_ENABLE_EMBEDDED_JETTY;
 import static com.linkedin.datastream.server.DatastreamServerConfigurationConstants.CONFIG_FACTORY_CLASS_NAME;
@@ -195,7 +196,10 @@ public class DatastreamServer {
     String diagPortStr = diagProperties.getProperty(CONFIG_DIAG_PORT, "");
     int diagPort = diagPortStr.isEmpty() ? _httpPort : Integer.parseInt(diagPortStr);
     String diagPath = diagProperties.getProperty(CONFIG_DIAG_PATH, "");
-    _serverComponentHealthAggregator = new ServerComponentHealthAggregator(zkClient, coordinatorConfig.getCluster(), diagPort, diagPath);
+    long diagPeerTimeoutMs = Long.parseLong(diagProperties.getProperty(CONFIG_DIAG_PEER_TIMEOUT_MS,
+        String.valueOf(ServerComponentHealthAggregator.DEFAULT_PEER_TIMEOUT_MS)));
+    _serverComponentHealthAggregator = new ServerComponentHealthAggregator(zkClient, coordinatorConfig.getCluster(),
+        diagPort, diagPath, diagPeerTimeoutMs);
 
     _csvMetricsDir = verifiableProperties.getString(CONFIG_CSV_METRICS_DIR, "");
 

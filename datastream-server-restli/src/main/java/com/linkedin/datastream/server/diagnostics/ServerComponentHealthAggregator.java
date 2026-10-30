@@ -33,9 +33,12 @@ public class ServerComponentHealthAggregator {
 
   private static final Logger LOG = LoggerFactory.getLogger(ServerComponentHealthAggregator.class.getName());
 
+  public static final long DEFAULT_PEER_TIMEOUT_MS = ServerComponentHealthRestClientFactory.DEFAULT_REQUEST_TIMEOUT_MS;
+
   private final ZkClient _zkClient;
   private final String _cluster;
   private final String _restEndPointPath;
+  private final long _peerTimeoutMs;
 
   private int _restEndPointPort;
 
@@ -47,13 +50,28 @@ public class ServerComponentHealthAggregator {
    * @param endPointPath the REST endpoint path
    */
   public ServerComponentHealthAggregator(ZkClient zkClient, String cluster, int endPointPort, String endPointPath) {
+    this(zkClient, cluster, endPointPort, endPointPath, DEFAULT_PEER_TIMEOUT_MS);
+  }
+
+  /**
+   * Constructor for ServerComponentHealthAggregator
+   * @param zkClient the ZooKeeper client to retrieve the list of servers in the cluster
+   * @param cluster the cluster
+   * @param endPointPort the REST endpoint port
+   * @param endPointPath the REST endpoint path
+   * @param peerTimeoutMs the HTTP request timeout, in milliseconds, for each REST call to another server
+   */
+  public ServerComponentHealthAggregator(ZkClient zkClient, String cluster, int endPointPort, String endPointPath,
+      long peerTimeoutMs) {
     Validate.notNull(zkClient);
     Validate.notNull(cluster);
+    Validate.isTrue(peerTimeoutMs > 0, "peerTimeoutMs must be positive: %d", peerTimeoutMs);
 
     _zkClient = zkClient;
     _cluster = cluster;
     _restEndPointPort = endPointPort;
     _restEndPointPath = endPointPath;
+    _peerTimeoutMs = peerTimeoutMs;
   }
 
   /**
@@ -74,7 +92,7 @@ public class ServerComponentHealthAggregator {
       // Send requests to all the server live instances
       String dmsUri = getDmsUri(hostName);
       LOG.info("Send restli status request to " + dmsUri);
-      ServerComponentHealthRestClient restClient = ServerComponentHealthRestClientFactory.getClient(dmsUri);
+      ServerComponentHealthRestClient restClient = ServerComponentHealthRestClientFactory.getClient(dmsUri, _peerTimeoutMs);
 
       ServerComponentHealth response = null;
       String errorMessage = "";
@@ -149,6 +167,10 @@ public class ServerComponentHealthAggregator {
       dmsUri += "/" + _restEndPointPath;
     }
     return dmsUri;
+  }
+
+  long getPeerTimeoutMs() {
+    return _peerTimeoutMs;
   }
 
   /**
